@@ -1,0 +1,170 @@
+import React, { useState, useEffect } from 'react';
+import { fetchTodayCount } from '../utils/fetchTodayCount';
+
+const checklistLabels = [
+  "सर्विस हिस्ट्री देखें और ग्राहक को सुझाव दें",
+  "गियर ऑयल स्तर जांचें",
+  "इंजन ऑयल स्तर जांचें",
+  "डिफरेंशियल ऑयल स्तर जांचें",
+  "कूलेंट स्तर जांचें",
+  "ब्रेक सेटिंग और ब्रेक लाइनर जांचें",
+  "क्लच सेटिंग और क्लच पार्ट्स जांचें",
+  "व्हील अलाइनमेंट के लिए सुझाव दें",
+  "फ्रंट सस्पेंशन चेक करें",
+  "सभी एयर होसेस जांचें",
+  "फ्यूल पाइप जांचें",
+  "कूलंट पाइप जांचें",
+  "बैटरी की स्थिति और इंडिकेटर जांचें",
+  "इंजन माउंटिंग जांचें",
+  "टैंक कैप और डीजल टैंक कैप जांचें",
+  "स्टेरिंग ऑयल स्तर और लीक जांचें",
+  "हेडलाइट, वाटर बल्ब, फ्यूज जांचें",
+  "वाइपर ब्लेड जांचें",
+  "लेवल वाल्व जांचें",
+  "फैन बेल्ट जांचें",
+  "डिफरेंशियल बेल्ट जांचें",
+  "रेट्रो जांचें"
+];
+
+const ChecksheetForm = () => {
+  const [formData, setFormData] = useState({
+    registration: '',
+    kilometers: '',
+    model: '',
+    date: '',
+    time: '',
+    otherIssue: '',
+    items: checklistLabels.map(() => ({ status: 'हाँ', remark: 'ठीक है' }))
+  });
+
+  const [todayCount, setTodayCount] = useState(0);
+
+  useEffect(() => {
+    const now = new Date();
+    setFormData((prev) => ({
+      ...prev,
+      date: now.toLocaleDateString('hi-IN'),
+      time: now.toLocaleTimeString('hi-IN'),
+    }));
+
+    // Fetch today's count
+    fetchTodayCount().then(setTodayCount);
+  }, []);
+
+  const handleChange = (index, value) => {
+    const updatedItems = [...formData.items];
+    updatedItems[index].status = value;
+    updatedItems[index].remark = value === 'नहीं' ? '' : 'ठीक है';
+    setFormData({ ...formData, items: updatedItems });
+  };
+
+  const handleRemarkChange = (index, value) => {
+    const updatedItems = [...formData.items];
+    updatedItems[index].remark = value;
+    setFormData({ ...formData, items: updatedItems });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const response = await fetch('https://script.google.com/macros/s/AKfycbzY3jaVoo3iYG-HAw10Zm4KNvn9Y3YgGzvGwCftm7zsZIXaHwN5w8Irl_lYVcQ3jpGIjQ/exec', {
+      method: 'POST',
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      alert('✅ सेव हो गया!');
+      setFormData({
+        registration: '',
+        kilometers: '',
+        model: '',
+        date: formData.date,
+        time: formData.time,
+        otherIssue: '',
+        items: checklistLabels.map(() => ({ status: 'हाँ', remark: 'ठीक है' }))
+      });
+      setTodayCount(todayCount + 1);
+    } else {
+      alert('❌ कुछ गलत हो गया!');
+    }
+  };
+
+  
+
+  return (
+<div className="container">
+      <h2 style={{ textAlign: 'center' }}>🔧 जनरल चेकअप फॉर्म</h2>
+      <p>आज की कुल एंट्री: <strong>{todayCount}</strong></p>
+
+      <form onSubmit={handleSubmit}>
+        <label>वाहन नंबर:</label>
+<input
+  value={formData.registration}
+  onChange={(e) => {
+    const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    setFormData({ ...formData, registration: val });
+  }}
+  required
+/>
+
+        <label>किलोमीटर:</label>
+<input
+  value={formData.kilometers}
+  onChange={(e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+    setFormData({ ...formData, kilometers: val });
+  }}
+  required
+/>
+
+        <label>मॉडल नंबर:</label>
+<input
+  value={formData.model}
+  onChange={(e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+    setFormData({ ...formData, model: val });
+  }}
+  required
+/>
+
+        <p>📅 तारीख: {formData.date} | ⏰ समय: {formData.time}</p>
+
+        {checklistLabels.map((label, index) => (
+          <div key={index} style={{ marginTop: '10px' }}>
+            <label>{index + 1}. {label}</label><br />
+            <select value={formData.items[index].status} onChange={(e) => handleChange(index, e.target.value)}>
+              <option value="हाँ">हाँ</option>
+              <option value="नहीं">नहीं</option>
+            </select>
+            {formData.items[index].status === 'नहीं' && (
+              <input
+                type="text"
+                placeholder="टिप्पणी दर्ज करें"
+                value={formData.items[index].remark}
+                onChange={(e) => handleRemarkChange(index, e.target.value)}
+                required
+              />
+            )}
+            
+          </div>
+        
+        ))}
+<label>🛠️ अन्य समस्या (अगर कोई हो):</label>
+<textarea
+  value={formData.otherIssue || ''}
+  onChange={(e) => setFormData({ ...formData, otherIssue: e.target.value })}
+  placeholder="यहाँ कोई और दिक्कत लिखें..."
+  rows={3}
+  style={{ width: '100%', marginBottom: '1rem' }}
+></textarea>
+
+        <p>🔖 एडवाइजर: <strong>Ranveer Singh Rathore</strong></p>
+        {/* Advisor signature image here if needed */}
+        {/* <img src="/signature.png" alt="Signature" width="150" /> */}
+
+        <button type="submit" style={{ marginRight: '10px' }}>✅ सबमिट करें</button>
+      </form>
+    </div>
+  );
+};
+
+export default ChecksheetForm;
