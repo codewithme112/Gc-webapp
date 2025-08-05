@@ -133,7 +133,7 @@ const ViewEntries = () => {
               style={{
                 marginTop: '10px',
                 padding: '6px 10px',
-                backgroundColor: '#ffc107',
+                backgroundColor: '276CF5',
                 border: 'none',
                 borderRadius: '6px',
                 cursor: 'pointer',
@@ -168,7 +168,7 @@ const ViewEntries = () => {
                 marginTop: '10px',
                 marginLeft: '10px',
                 padding: '6px 10px',
-                backgroundColor: '#17a2b8',
+                backgroundColor: '276CF5',
                 color: 'white',
                 border: 'none',
                 borderRadius: '6px',

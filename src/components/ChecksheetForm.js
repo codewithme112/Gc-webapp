@@ -97,7 +97,7 @@ const ChecksheetForm = () => {
 
       <form onSubmit={handleSubmit}>
         <label>वाहन नंबर:</label>
-<input
+<input style={{backgroundColor: '#E3E7FF'}}
   value={formData.registration}
   onChange={(e) => {
     const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -107,7 +107,7 @@ const ChecksheetForm = () => {
 />
 
         <label>किलोमीटर:</label>
-<input
+<input  style={{backgroundColor: '#E3E7FF'}}
   value={formData.kilometers}
   onChange={(e) => {
     const val = e.target.value.replace(/\D/g, '').slice(0, 8);
@@ -117,7 +117,7 @@ const ChecksheetForm = () => {
 />
 
         <label>मॉडल नंबर:</label>
-<input
+<input style={{backgroundColor: '#E3E7FF'}}
   value={formData.model}
   onChange={(e) => {
     const val = e.target.value.replace(/\D/g, '').slice(0, 4);
@@ -126,17 +126,17 @@ const ChecksheetForm = () => {
   required
 />
 
-        <p>📅 तारीख: {formData.date} | ⏰ समय: {formData.time}</p>
+        <p style={{fontWeight:'bold', border:'1px solid white'}}>📅 तारीख: {formData.date} | ⏰ समय: {formData.time}</p>
 
         {checklistLabels.map((label, index) => (
-          <div key={index} style={{ marginTop: '10px' }}>
+          <div key={index} style={{ marginTop: '10px', backgroundColor: '#E3E7FF', padding:'4px', margin:'3px', borderRadius:'3px',fontWeight:'bold' }}>
             <label>{index + 1}. {label}</label><br />
-            <select value={formData.items[index].status} onChange={(e) => handleChange(index, e.target.value)}>
+            <select style={{backgroundColor: '#7187F0', color:'white'}} value={formData.items[index].status} onChange={(e) => handleChange(index, e.target.value)}>
               <option value="हाँ">हाँ</option>
               <option value="नहीं">नहीं</option>
             </select>
             {formData.items[index].status === 'नहीं' && (
-              <input
+              <input style={{backgroundColor: '#E3E7FF', border:'1px solid black'}}
                 type="text"
                 placeholder="टिप्पणी दर्ज करें"
                 value={formData.items[index].remark}
@@ -148,13 +148,13 @@ const ChecksheetForm = () => {
           </div>
         
         ))}
-<label>🛠️ अन्य समस्या (अगर कोई हो):</label>
-<textarea
+<label style={{fontWeight:'bold'}}>🛠️ अन्य समस्या (अगर कोई हो):</label>
+<textarea 
   value={formData.otherIssue || ''}
   onChange={(e) => setFormData({ ...formData, otherIssue: e.target.value })}
   placeholder="यहाँ कोई और दिक्कत लिखें..."
   rows={3}
-  style={{ width: '100%', marginBottom: '1rem' }}
+  style={{ width: '100%', marginBottom: '0rem', backgroundColor: '#E3E7FF' }}
 ></textarea>
 
         <p>🔖 एडवाइजर: <strong>Ranveer Singh Rathore</strong></p>
