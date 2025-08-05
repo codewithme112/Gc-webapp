@@ -93,3 +93,35 @@ button:hover {
 .card-row strong {
   color: #007bff;
 }
+
+@media print {
+  img {
+    display: inline-block !important;
+    max-height: 100px !important;
+    max-width: 200px !important;
+  }
+}
+
+@media print {
+  body {
+    margin: 0;
+    padding: 1cm;
+    font-size: 12px;
+  }
+
+  table {
+    page-break-inside: avoid;
+  }
+
+  .print-container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
