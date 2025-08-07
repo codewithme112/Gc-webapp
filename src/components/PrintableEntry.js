@@ -18,17 +18,14 @@ const formatTime = (rawTime) => {
 const PrintableEntry = ({ entry, checklistLabels }) => {
   return (
     <div
-      className="print-container"
+      className="print-area"
       style={{
         fontFamily: 'Arial',
-        padding: '10px 20px',
+        padding: '20px',
+        margin: '0 auto',
         maxWidth: '780px',
-        margin: 'auto',
         fontSize: '12.5px',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '1050px', // for A4
-        justifyContent: 'space-between'
+        pageBreakInside: 'avoid'
       }}
     >
       <div>
@@ -36,7 +33,15 @@ const PrintableEntry = ({ entry, checklistLabels }) => {
           🔧 जनरल चेकअप फॉर्म
         </h2>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            gap: '10px',
+            marginBottom: '6px'
+          }}
+        >
           <p><strong>वाहन नंबर:</strong> {entry.registration}</p>
           <p><strong>किलोमीटर:</strong> {entry.kilometers}</p>
           <p><strong>मॉडल नंबर:</strong> {entry.model}</p>
@@ -44,13 +49,15 @@ const PrintableEntry = ({ entry, checklistLabels }) => {
           <p><strong>⏰ समय:</strong> {formatTime(entry.time)}</p>
         </div>
 
-        <p style={{ margin: '4px 0 8px' }}>🔖 <strong>मैकेनिक:</strong> Islam Kham</p>
+        <p style={{ margin: '4px 0 8px' }}>
+          🔖 <strong>मैकेनिक:</strong> Islam Kham
+        </p>
 
         <table
           style={{
             width: '100%',
             borderCollapse: 'collapse',
-            pageBreakInside: 'avoid',
+            pageBreakInside: 'avoid'
           }}
         >
           <thead>
@@ -66,7 +73,9 @@ const PrintableEntry = ({ entry, checklistLabels }) => {
               <tr key={index}>
                 <td style={tdStyle}>{index + 1}</td>
                 <td style={tdStyle}>{checklistLabels[index]}</td>
-                <td style={tdStyle}>{item.status}</td>
+                <td style={tdStyle}>
+                  {item.status === 'हाँ' ? '✅' : item.status === 'नहीं' ? '❌' : ''}
+                </td>
                 <td style={tdStyle}>{item.remark}</td>
               </tr>
             ))}
@@ -88,7 +97,7 @@ const PrintableEntry = ({ entry, checklistLabels }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-end',
-          marginTop: '10px'
+          marginTop: '12px'
         }}
       >
         <div style={{ fontWeight: 'bold' }}>Ranveer Singh Rathore</div>

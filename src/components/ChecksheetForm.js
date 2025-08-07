@@ -47,7 +47,6 @@ const ChecksheetForm = () => {
       time: now.toLocaleTimeString('hi-IN'),
     }));
 
-    // Fetch today's count
     fetchTodayCount().then(setTodayCount);
   }, []);
 
@@ -66,77 +65,100 @@ const ChecksheetForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const response = await fetch('https://script.google.com/macros/s/AKfycbzY3jaVoo3iYG-HAw10Zm4KNvn9Y3YgGzvGwCftm7zsZIXaHwN5w8Irl_lYVcQ3jpGIjQ/exec', {
-      method: 'POST',
-      body: JSON.stringify(formData),
-    });
-
-    if (response.ok) {
-      alert('✅ सेव हो गया!');
-      setFormData({
-        registration: '',
-        kilometers: '',
-        model: '',
-        date: formData.date,
-        time: formData.time,
-        otherIssue: '',
-        items: checklistLabels.map(() => ({ status: 'हाँ', remark: 'ठीक है' }))
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbzTVbKkNudqmXgPJaBM-olgZw-s8cr9N6H09G2IEQPG5aZLbfzrfbJKK0squ-UPegCbyA/exec', {
+        method: 'POST',
+        body: JSON.stringify(formData),
       });
-      setTodayCount(todayCount + 1);
-    } else {
-      alert('❌ कुछ गलत हो गया!');
+
+      if (response.ok) {
+        alert('✅ सेव हो गया!');
+        setFormData({
+          registration: '',
+          kilometers: '',
+          model: '',
+          date: formData.date,
+          time: formData.time,
+          otherIssue: '',
+          items: checklistLabels.map(() => ({ status: 'हाँ', remark: 'ठीक है' }))
+        });
+        setTodayCount(todayCount + 1);
+      } else {
+        alert('❌ कुछ गलत हो गया!');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('❌ नेटवर्क समस्या! कृपया दोबारा प्रयास करें।');
     }
   };
 
-  
-
   return (
-<div className="container">
+    <div className="container">
       <h2 style={{ textAlign: 'center' }}>🔧 जनरल चेकअप फॉर्म</h2>
       <p>आज की कुल एंट्री: <strong>{todayCount}</strong></p>
 
       <form onSubmit={handleSubmit}>
         <label>वाहन नंबर:</label>
-<input style={{backgroundColor: '#E3E7FF'}}
-  value={formData.registration}
-  onChange={(e) => {
-    const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    setFormData({ ...formData, registration: val });
-  }}
-  required
-/>
+        <input
+          style={{ backgroundColor: '#E3E7FF' }}
+          value={formData.registration}
+          onChange={(e) => {
+            const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            setFormData({ ...formData, registration: val });
+          }}
+          required
+        />
 
         <label>किलोमीटर:</label>
-<input  style={{backgroundColor: '#E3E7FF'}}
-  value={formData.kilometers}
-  onChange={(e) => {
-    const val = e.target.value.replace(/\D/g, '').slice(0, 8);
-    setFormData({ ...formData, kilometers: val });
-  }}
-  required
-/>
+        <input
+          style={{ backgroundColor: '#E3E7FF' }}
+          value={formData.kilometers}
+          onChange={(e) => {
+            const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+            setFormData({ ...formData, kilometers: val });
+          }}
+          required
+        />
 
         <label>मॉडल नंबर:</label>
-<input style={{backgroundColor: '#E3E7FF'}}
-  value={formData.model}
-  onChange={(e) => {
-    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-    setFormData({ ...formData, model: val });
-  }}
-  required
-/>
+        <input
+          style={{ backgroundColor: '#E3E7FF' }}
+          value={formData.model}
+          onChange={(e) => {
+            const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+            setFormData({ ...formData, model: val });
+          }}
+          required
+        />
 
-        <p style={{fontWeight:'bold', border:'1px solid white'}}>📅 तारीख: {formData.date} | ⏰ समय: {formData.time}</p>
+        <p style={{ fontWeight: 'bold', border: '1px solid white' }}>
+          📅 तारीख: {formData.date} | ⏰ समय: {formData.time}
+        </p>
 
         {checklistLabels.map((label, index) => (
-          <div key={index} style={{ marginTop: '10px', backgroundColor: '#E3E7FF', padding:'4px', margin:'3px', borderRadius:'3px',fontWeight:'bold' }}>
+          <div
+            key={index}
+            style={{
+              marginTop: '10px',
+              backgroundColor: '#E3E7FF',
+              padding: '4px',
+              margin: '3px',
+              borderRadius: '3px',
+              fontWeight: 'bold',
+            }}
+          >
             <label>{index + 1}. {label}</label><br />
-            <select style={{backgroundColor: '#7187F0', color:'white'}} value={formData.items[index].status} onChange={(e) => handleChange(index, e.target.value)}>
-              <option value="हाँ">हाँ</option>
-              <option value="नहीं">नहीं</option>
+            <select
+              style={{ backgroundColor: '#7187F0', color: 'white' }}
+              value={formData.items[index].status}
+              onChange={(e) => handleChange(index, e.target.value)}
+            >
+              <option value="हाँ">✅</option>
+              <option value="नहीं">❌</option>
             </select>
             {formData.items[index].status === 'नहीं' && (
-              <input style={{backgroundColor: '#E3E7FF', border:'1px solid black'}}
+              <input
+                style={{ backgroundColor: '#E3E7FF', border: '1px solid black' }}
                 type="text"
                 placeholder="टिप्पणी दर्ज करें"
                 value={formData.items[index].remark}
@@ -144,22 +166,19 @@ const ChecksheetForm = () => {
                 required
               />
             )}
-            
           </div>
-        
         ))}
-<label style={{fontWeight:'bold'}}>🛠️ अन्य समस्या (अगर कोई हो):</label>
-<textarea 
-  value={formData.otherIssue || ''}
-  onChange={(e) => setFormData({ ...formData, otherIssue: e.target.value })}
-  placeholder="यहाँ कोई और दिक्कत लिखें..."
-  rows={3}
-  style={{ width: '100%', marginBottom: '0rem', backgroundColor: '#E3E7FF' }}
-></textarea>
+
+        <label style={{ fontWeight: 'bold' }}>🛠️ अन्य समस्या (अगर कोई हो):</label>
+        <textarea
+          value={formData.otherIssue || ''}
+          onChange={(e) => setFormData({ ...formData, otherIssue: e.target.value })}
+          placeholder="यहाँ कोई और दिक्कत लिखें..."
+          rows={3}
+          style={{ width: '100%', marginBottom: '0rem', backgroundColor: '#E3E7FF' }}
+        ></textarea>
 
         <p>🔖 एडवाइजर: <strong>Ranveer Singh Rathore</strong></p>
-        {/* Advisor signature image here if needed */}
-        {/* <img src="/signature.png" alt="Signature" width="150" /> */}
 
         <button type="submit" style={{ marginRight: '10px' }}>✅ सबमिट करें</button>
       </form>
