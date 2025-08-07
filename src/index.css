@@ -119,54 +119,32 @@ button:hover {
 }
 
 @media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area, .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    background: #fff;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-before: avoid !important;
+    break-inside: avoid !important;
+    overflow: hidden;
+  }
   @page {
     size: A4 portrait;
-    margin: 0.5cm;
-  }
-
-  body * {
-    visibility: hidden !important;
-  }
-
-  .print-area, .print-area * {
-    visibility: visible !important;
-  }
-
-  .print-area {
-    position: absolute !important;
-    top: 0;
-    left: 0;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    background: white !important;
-    z-index: 9999 !important;
-    page-break-inside: avoid !important;
-    box-sizing: border-box !important;
-  }
-
-  .print-area button {
-    display: none !important;
-  }
-
-  .overlay, .modal {
-    display: none !important;
-    all: unset !important;
-  }
-
-  img {
-    max-height: 100px !important;
-    max-width: 200px !important;
-  }
-
-  table {
-    page-break-inside: avoid !important;
-  }
-
-  tr {
-    page-break-inside: avoid !important;
-    page-break-after: auto !important;
+    margin: 20mm;
   }
 }

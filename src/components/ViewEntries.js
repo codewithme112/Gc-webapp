@@ -148,9 +148,11 @@ const ViewEntries = () => {
 
      {selectedEntry && (
   <div className="overlay">
-    <div className="modal print-area">
+    <div className="modal">
       <button onClick={() => setSelectedEntry(null)}>❌ बंद करें</button>
-      <PrintableEntry entry={selectedEntry} checklistLabels={checklistLabels} />
+      <div className="print-area">
+        <PrintableEntry entry={selectedEntry} checklistLabels={checklistLabels} />
+      </div>
       <button onClick={() => window.print()}>🖨️ प्रिंट</button>
     </div>
   </div>
