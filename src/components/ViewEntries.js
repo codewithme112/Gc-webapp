@@ -24,10 +24,11 @@ const checklistLabels = [
   "फैन बेल्ट जांचें",
   "एसी गैस रिफिलिंग",
   "रेट्रो जांचें",
+  "लोड झेलने वाले जोइंट्स की ग्रेसिंग जांचें",
   "अन्य समस्या"
 ];
 
-const FINAL_URL = 'https://script.google.com/macros/s/AKfycbzTVbKkNudqmXgPJaBM-olgZw-s8cr9N6H09G2IEQPG5aZLbfzrfbJKK0squ-UPegCbyA/exec';
+const FINAL_URL = 'https://script.google.com/macros/s/AKfycbybZns1p4daGCK4yh1DiQa60lj_6e7GBL3DWzFktqb7g7mcdevYZjJvA2W9UbDq7IhU6A/exec';
 
 const formatDate = (rawDate) => {
   const d = new Date(rawDate);
@@ -49,15 +50,19 @@ const ViewEntries = () => {
   const [searchText, setSearchText] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [loading, setLoading] = useState(false); // <-- Add this
 
   const fetchEntries = async (url) => {
     try {
+      setLoading(true); // <-- Start loading
       const res = await fetch(url);
       const data = await res.json();
       setEntries(data);
     } catch (err) {
       console.error('❌ Error fetching entries:', err);
       alert('नेटवर्क समस्या! कृपया दोबारा प्रयास करें।');
+    } finally {
+      setLoading(false); // <-- Stop loading
     }
   };
 
@@ -93,13 +98,14 @@ const ViewEntries = () => {
           : null
       )
       .filter(Boolean);
-
-    if (otherIssue && otherIssue.trim()) {
+  
+    // Fix: Ensure otherIssue is a string before calling trim
+    if (typeof otherIssue === 'string' && otherIssue.trim()) {
       notOk.push(`23. अन्य समस्या — ${otherIssue}`);
     }
-
+  
     if (notOk.length === 0) return <span style={{ color: 'green' }}>✅ All OK</span>;
-
+  
     return (
       <div style={{ color: 'red' }}>
         {notOk.map((item, i) => <div key={i}>❌ {item}</div>)}
@@ -111,6 +117,11 @@ const ViewEntries = () => {
   return (
     <div className="entries-card-list">
       <h2 style={{ textAlign: 'center' }}>📋 सभी चेकशीट एंट्री</h2>
+      {loading && (
+        <div className="loader-overlay">
+          <div className="loader"></div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
         <input

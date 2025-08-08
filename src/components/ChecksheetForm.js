@@ -6,7 +6,7 @@ const checklistLabels = [
   "गियर ऑयल स्तर जांचें",
   "इंजन ऑयल स्तर जांचें",
   "डिफरेंशियल ऑयल स्तर जांचें",
-  "कूलेंट स्तर जांचें",
+  "कूलेंट स्तर जांचें , कूलेंट की गुणवत्ता जांचें",
   "ब्रेक सेटिंग और ब्रेक लाइनर जांचें",
   "क्लच सेटिंग और क्लच पार्ट्स जांचें",
   "व्हील अलाइनमेंट के लिए सुझाव दें",
@@ -20,10 +20,11 @@ const checklistLabels = [
   "स्टेरिंग ऑयल स्तर और लीक जांचें",
   "बैटरी वाटर, बल्ब, फ्यूज जांचें",
   "वाइपर ब्लेड जांचें",
-  "यूरिया लेवल जांचें",
+  "यूरिया लेवल जांचें , यूरिया(DEF) की गुणवत्ता जांचें",
   "फैन बेल्ट जांचें",
   "एसी गैस रिफिलिंग",
-  "रेट्रो जांचें"
+  "रेट्रो जांचें",
+  "लोड झेलने वाले जोइंट्स की ग्रेसिंग जांचें"
 ];
 
 const ChecksheetForm = () => {
@@ -63,10 +64,14 @@ const ChecksheetForm = () => {
     setFormData({ ...formData, items: updatedItems });
   };
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return; // Prevent double submit
+    setSubmitting(true);
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbzTVbKkNudqmXgPJaBM-olgZw-s8cr9N6H09G2IEQPG5aZLbfzrfbJKK0squ-UPegCbyA/exec', {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbybZns1p4daGCK4yh1DiQa60lj_6e7GBL3DWzFktqb7g7mcdevYZjJvA2W9UbDq7IhU6A/exec', {
         method: 'POST',
         body: JSON.stringify(formData),
       });
@@ -94,7 +99,7 @@ const ChecksheetForm = () => {
 
   return (
     <div className="container">
-      <h2 style={{ textAlign: 'center' }}>🔧 जनरल चेकअप फॉर्म</h2>
+      <h2 style={{ textAlign: 'center' }}>🔧 जनरल चेकअप फॉर्सट</h2>
       <p>आज की कुल एंट्री: <strong>{todayCount}</strong></p>
 
       <form onSubmit={handleSubmit}>
@@ -180,10 +185,11 @@ const ChecksheetForm = () => {
 
         <p>🔖 एडवाइजर: <strong>Ranveer Singh Rathore</strong></p>
 
-        <button type="submit" style={{ marginRight: '10px' }}>✅ सबमिट करें</button>
-      </form>
-    </div>
-  );
+        <button type="submit" disabled={submitting}>✅ सबमिट करें</button>
+    
+  </form>
+</div>
+);
 };
 
 export default ChecksheetForm;

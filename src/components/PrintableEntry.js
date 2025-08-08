@@ -73,14 +73,12 @@ const PrintableEntry = ({ entry, checklistLabels }) => {
               <tr key={index}>
                 <td style={tdStyle}>{index + 1}</td>
                 <td style={tdStyle}>{checklistLabels[index]}</td>
-                <td style={tdStyle}>
-                  {item.status === 'हाँ' ? '✅' : item.status === 'नहीं' ? '❌' : ''}
-                </td>
-                <td style={tdStyle}>{item.remark}</td>
+                <td style={tdStyle}>{item.status === 'OK' ? '✅' : ''}</td>
+                <td style={tdStyle}>{item.status === 'OK' ? 'ठीक है' : (item.remark || '')}</td>
               </tr>
             ))}
 
-            {entry.otherIssue && entry.otherIssue.trim() !== '' && (
+            {(entry.otherIssue ?? '').toString().trim() !== '' && (
               <tr>
                 <td style={tdStyle}>23</td>
                 <td style={tdStyle}>अन्य समस्या</td>
