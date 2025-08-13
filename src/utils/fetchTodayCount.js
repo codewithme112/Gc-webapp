@@ -1,12 +1,30 @@
+import { GOOGLE_SCRIPT_URL } from "../config.js";
+
 export async function fetchTodayCount() {
   try {
-    const res = await fetch('https://script.google.com/macros/s/AKfycbybZns1p4daGCK4yh1DiQa60lj_6e7GBL3DWzFktqb7g7mcdevYZjJvA2W9UbDq7IhU6A/exec?type=today');
+    const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=todayCount`);
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! Status: ${res.status}`);
+    }
+
     const data = await res.json();
 
-    // data is an array of today's entries
-    return Array.isArray(data) ? data.length : 0;
+    if (typeof data.todayCount === "number") {
+      return data.todayCount;
+    }
+
+    if (Array.isArray(data.entries)) {
+      return data.entries.length;
+    }
+
+    if (Array.isArray(data)) {
+      return data.length;
+    }
+
+    return 0;
   } catch (e) {
-    console.error('Failed to fetch today\'s count:', e);
+    console.error("Failed to fetch today's count:", e);
     return 0;
   }
 }

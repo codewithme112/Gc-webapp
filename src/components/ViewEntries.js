@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import PrintableEntry from './PrintableEntry';
+import React, { useEffect, useState } from "react";
+import PrintableEntry from "./PrintableEntry.js";
+import { GOOGLE_SCRIPT_URL } from "../config.js";
 
 const checklistLabels = [
   "सर्विस हिस्ट्री देखें और ग्राहक को सुझाव दें",
@@ -25,105 +26,162 @@ const checklistLabels = [
   "एसी गैस रिफिलिंग",
   "रेट्रो जांचें",
   "लोड झेलने वाले जोइंट्स की ग्रेसिंग जांचें",
-  "अन्य समस्या"
+  "अन्य समस्या",
 ];
 
-const FINAL_URL = 'https://script.google.com/macros/s/AKfycbybZns1p4daGCK4yh1DiQa60lj_6e7GBL3DWzFktqb7g7mcdevYZjJvA2W9UbDq7IhU6A/exec';
+const FINAL_URL = GOOGLE_SCRIPT_URL;
 
-const formatDate = (rawDate) => {
-  const d = new Date(rawDate);
-  if (isNaN(d)) return rawDate;
-  return d.toLocaleDateString('hi-IN');
+const formatDate = (dateTimeStr) => {
+  if (!dateTimeStr) return "";
+  const d = new Date(dateTimeStr);
+  return isNaN(d) ? dateTimeStr : d.toLocaleDateString("hi-IN");
 };
 
-const formatTime = (rawTime) => {
-  const t = new Date(rawTime);
-  if (isNaN(t)) return rawTime;
-  return t.toLocaleTimeString('hi-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+const formatTime = (dateTimeStr) => {
+  if (!dateTimeStr) return "";
+  const d = new Date(dateTimeStr);
+  return isNaN(d)
+    ? dateTimeStr
+    : d.toLocaleTimeString("hi-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 };
+
 
 const ViewEntries = () => {
   const [entries, setEntries] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [selectedDate, setSelectedDate] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
   const [selectedEntry, setSelectedEntry] = useState(null);
-  const [loading, setLoading] = useState(false); // <-- Add this
+  const [loading, setLoading] = useState(false);
+  const [customerDecisions, setCustomerDecisions] = useState({});
+  const [repairStatuses, setRepairStatuses] = useState({});
 
-  const fetchEntries = async (url) => {
-    try {
-      setLoading(true); // <-- Start loading
-      const res = await fetch(url);
-      const data = await res.json();
-      setEntries(data);
-    } catch (err) {
-      console.error('❌ Error fetching entries:', err);
-      alert('नेटवर्क समस्या! कृपया दोबारा प्रयास करें।');
-    } finally {
-      setLoading(false); // <-- Stop loading
-    }
-  };
+ const fetchEntries = async (query) => {
+  try {
+    setLoading(true);
+    const res = await fetch(query);
+    const data = await res.json();
+    setEntries(
+      Array.isArray(data) 
+        ? data 
+        : Array.isArray(data.entries) 
+          ? data.entries 
+          : []
+    );
+  } catch (err) {
+    console.error("❌ Fetch error:", err);
+    alert("नेटवर्क समस्या! कृपया बाद में प्रयास करें।");
+  } finally {
+    setLoading(false);
+  }
+};
 
-  useEffect(() => {
+  // Load only today's entries on first load
+useEffect(() => {
+  fetchEntries(`${FINAL_URL}?type=today`);
+}, []);
+
+const handleSearch = () => {
+  if (searchText.trim()) {
+    fetchEntries(`${FINAL_URL}?search=${encodeURIComponent(searchText.trim())}`);
+  } else if (selectedDate) {
+    const [yyyy, mm, dd] = selectedDate.split("-");
+    fetchEntries(`${FINAL_URL}?date=${dd}/${mm}/${yyyy}`);
+
+  } else {
     fetchEntries(`${FINAL_URL}?type=today`);
-  }, []);
+  }
+};
 
-  const handleSearch = () => {
-    if (searchText.trim()) {
-      fetchEntries(`${FINAL_URL}?search=${searchText.trim()}`);
-    } else if (selectedDate) {
-      handleDateFilter();
-    } else {
-      fetchEntries(`${FINAL_URL}?type=today`);
-    }
-  };
 
-  const handleDateFilter = () => {
-    if (selectedDate) {
-      const [yyyy, mm, dd] = selectedDate.split('-');
-      const formatted = `${dd}-${mm}-${yyyy}`;
-      fetchEntries(`${FINAL_URL}?date=${formatted}`);
-    } else {
-      fetchEntries(`${FINAL_URL}?type=today`);
-    }
-  };
 
   const renderSummary = (items, otherIssue) => {
+    if (!Array.isArray(items)) {
+      return <span style={{ color: "red" }}>❌ डेटा उपलब्ध नहीं</span>;
+    }
+
     const notOk = items
       .map((item, i) =>
-        item.status === 'नहीं'
-          ? `${i + 1}. ${checklistLabels[i]} — ${item.remark}`
+        item?.status === "नहीं"
+          ? `${i + 1}. ${checklistLabels[i] || "अज्ञात चेक"} — ${item?.remark || ""}`
           : null
       )
       .filter(Boolean);
-  
-    // Fix: Ensure otherIssue is a string before calling trim
-    if (typeof otherIssue === 'string' && otherIssue.trim()) {
+
+    if (otherIssue && typeof otherIssue === "string" && otherIssue.trim()) {
       notOk.push(`23. अन्य समस्या — ${otherIssue}`);
     }
-  
-    if (notOk.length === 0) return <span style={{ color: 'green' }}>✅ All OK</span>;
-  
-    return (
-      <div style={{ color: 'red' }}>
-        {notOk.map((item, i) => <div key={i}>❌ {item}</div>)}
+
+    return notOk.length === 0 ? (
+      <span style={{ color: "green" }}>✅ All OK</span>
+    ) : (
+      <div style={{ color: "red" }}>
+        {notOk.map((item, i) => (
+          <div key={i}>❌ {item}</div>
+        ))}
         <div>✅ Other All OK</div>
       </div>
     );
   };
 
+  const handleCustomerDecisionChange = (regNo, value) => {
+  setCustomerDecisions(prev => ({ ...prev, [regNo]: value }));
+  if (value === "Denied") {
+    setRepairStatuses(prev => ({ ...prev, [regNo]: "Denied" }));
+  } else if (value === "Pending") {
+    setRepairStatuses(prev => ({ ...prev, [regNo]: "Pending" }));
+  }
+};
+
+const handleRepairStatusChange = (regNo, value) => {
+  setRepairStatuses(prev => ({ ...prev, [regNo]: value }));
+};
+
+
+  const handleUpdateStatus = async (entry) => {
+  const customerDecision = customerDecisions[entry.registration] || "Pending";
+  const repairStatus = repairStatuses[entry.registration] || "Pending";
+
+
+    try {
+    setLoading(true);
+    const res = await fetch(
+      `${FINAL_URL}?action=updateStatus&registration=${encodeURIComponent(
+        entry.registration
+      )}&customerDecision=${encodeURIComponent(
+        customerDecision
+      )}&repairStatus=${encodeURIComponent(repairStatus)}`
+    );
+    const data = await res.json();
+    if (data.success) {
+      alert("✅ Status updated successfully!");
+      fetchEntries(`${FINAL_URL}?type=today`);
+    } else {
+      alert("❌ Failed to update status.");
+    }
+  } catch (err) {
+    console.error("❌ Update error:", err);
+    alert("❌ Network error while updating.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
+
   return (
     <div className="entries-card-list">
-      <h2 style={{ textAlign: 'center' }}>📋 सभी चेकशीट एंट्री</h2>
+      <h2 style={{ textAlign: "center" }}>📋 सभी चेकशीट एंट्री</h2>
+
       {loading && (
         <div className="loader-overlay">
           <div className="loader"></div>
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+      {/* Search and Date filter */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "15px" }}>
         <input
           type="text"
           placeholder="वाहन नंबर खोजें..."
@@ -138,6 +196,7 @@ const ViewEntries = () => {
         <button onClick={handleSearch}>🔍 खोजें</button>
       </div>
 
+      {/* Entries */}
       <div className="card-grid">
         {[...entries].reverse().map((entry, index) => (
           <div className="entry-card" key={index}>
@@ -145,30 +204,71 @@ const ViewEntries = () => {
             <div className="card-row"><strong>वाहन नंबर:</strong> {entry.registration}</div>
             <div className="card-row"><strong>KM:</strong> {entry.kilometers}</div>
             <div className="card-row"><strong>मॉडल:</strong> {entry.model}</div>
-            <div className="card-row"><strong>📅 तारीख:</strong> {formatDate(entry.date)}</div>
-            <div className="card-row"><strong>⏰ समय:</strong> {formatTime(entry.time)}</div>
+           <div className="card-row"><strong>📅 तारीख:</strong> {formatDate(entry.dateTime)}</div>
+<div className="card-row"><strong>⏰ समय:</strong> {formatTime(entry.dateTime)}</div>
+
             <div className="card-row"><strong>स्थिति:</strong> {renderSummary(entry.items, entry.otherIssue)}</div>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '10px' }}>
-              {/* <button onClick={() => window.print()}>🖨️ प्रिंट</button> */}
+
+            <div style={{ marginTop: "10px" }}>
+              <label>Customer Decision: </label>
+              <select
+  value={customerDecisions[entry.registration] || "Pending"}
+  onChange={(e) => handleCustomerDecisionChange(entry.registration, e.target.value)}
+>
+
+                <option value="Pending">Pending</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Denied">Denied</option>
+              </select>
+            </div>
+
+            <div style={{ marginTop: "10px" }}>
+              <label>Repair Status: </label>
+              <select
+                value={repairStatuses[index] || "Pending"}
+                onChange={(e) => handleRepairStatusChange(index, e.target.value)}
+                disabled={customerDecisions[index] !== "Accepted"}
+              >
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Denied">Denied</option>
+              </select>
+            </div>
+
+            <div style={{ marginTop: "10px" }}>
+              <button
+                onClick={() => handleUpdateStatus(entry, index)}
+                style={{
+                  background: "green",
+                  color: "white",
+                  padding: "5px 10px",
+                  border: "none",
+                  borderRadius: "5px",
+                }}
+              >
+                ✅ Update Status
+              </button>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", marginTop: "10px" }}>
               <button onClick={() => setSelectedEntry(entry)}>📄 View Report</button>
             </div>
           </div>
         ))}
       </div>
 
-     {selectedEntry && (
-  <div className="overlay">
-    <div className="modal">
-      <button onClick={() => setSelectedEntry(null)}>❌ बंद करें</button>
-      <div className="print-area">
-        <PrintableEntry entry={selectedEntry} checklistLabels={checklistLabels} />
-      </div>
-      <button onClick={() => window.print()}>🖨️ प्रिंट</button>
-    </div>
-  </div>
-)}
-
+      {selectedEntry && (
+        <div className="overlay">
+          <div className="modal">
+            <button onClick={() => setSelectedEntry(null)}>❌ बंद करें</button>
+            <div className="print-area">
+              <PrintableEntry entry={selectedEntry} checklistLabels={checklistLabels} />
+            </div>
+            <button onClick={() => window.print()}>🖨️ प्रिंट</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
