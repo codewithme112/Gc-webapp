@@ -2,8 +2,7 @@ import { TODAY_COUNT_URL } from '../config.js';
 
 export async function fetchTodayCount() {
   try {
-const response = await fetch(TODAY_COUNT_URL);
-
+    const response = await fetch(`${TODAY_COUNT_URL}?action=todayCount`);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
