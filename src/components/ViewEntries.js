@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PrintableEntry from "./PrintableEntry.js";
-import { GOOGLE_SCRIPT_URL } from "../config.js";
+import { ENTRIES_URL } from "../config.js";
 
 const checklistLabels = [
   "सर्विस हिस्ट्री देखें और ग्राहक को सुझाव दें",
@@ -29,7 +29,7 @@ const checklistLabels = [
   "अन्य समस्या",
 ];
 
-const FINAL_URL = GOOGLE_SCRIPT_URL;
+const FINAL_URL = ENTRIES_URL;
 
 const formatDate = (dateTimeStr) => {
   if (!dateTimeStr) return "";
@@ -45,7 +45,6 @@ const formatTime = (dateTimeStr) => {
     : d.toLocaleTimeString("hi-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 };
 
-
 const ViewEntries = () => {
   const [entries, setEntries] = useState([]);
   const [searchText, setSearchText] = useState("");
@@ -55,50 +54,47 @@ const ViewEntries = () => {
   const [customerDecisions, setCustomerDecisions] = useState({});
   const [repairStatuses, setRepairStatuses] = useState({});
 
- const fetchEntries = async (query) => {
-  try {
-    setLoading(true);
-    const res = await fetch(query);
-    const data = await res.json();
-    setEntries(
-      Array.isArray(data) 
-        ? data 
-        : Array.isArray(data.entries) 
-          ? data.entries 
+  const fetchEntries = async (query) => {
+    try {
+      setLoading(true);
+      const res = await fetch(query);
+      const data = await res.json();
+      setEntries(
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data.entries)
+          ? data.entries
           : []
-    );
-  } catch (err) {
-    console.error("❌ Fetch error:", err);
-    alert("नेटवर्क समस्या! कृपया बाद में प्रयास करें।");
-  } finally {
-    setLoading(false);
-  }
-};
+      );
+    } catch (err) {
+      console.error("❌ Fetch error:", err);
+      alert("नेटवर्क समस्या! कृपया बाद में प्रयास करें।");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Load only today's entries on first load
-useEffect(() => {
-  fetchEntries(`${FINAL_URL}?type=today`);
-}, []);
-
-const handleSearch = () => {
-  if (searchText.trim()) {
-    fetchEntries(`${FINAL_URL}?search=${encodeURIComponent(searchText.trim())}`);
-  } else if (selectedDate) {
-    const [yyyy, mm, dd] = selectedDate.split("-");
-    fetchEntries(`${FINAL_URL}?date=${dd}/${mm}/${yyyy}`);
-
-  } else {
+  useEffect(() => {
     fetchEntries(`${FINAL_URL}?type=today`);
-  }
-};
+  }, []);
 
-
+  const handleSearch = () => {
+    if (searchText.trim()) {
+      fetchEntries(`${FINAL_URL}?search=${encodeURIComponent(searchText.trim())}`);
+    } else if (selectedDate) {
+      // selectedDate is yyyy-mm-dd from <input type="date">
+      const [yyyy, mm, dd] = selectedDate.split("-");
+      fetchEntries(`${FINAL_URL}?date=${dd}-${mm}-${yyyy}`); // dashes; GAS also accepts slashes now
+    } else {
+      fetchEntries(`${FINAL_URL}?type=today`);
+    }
+  };
 
   const renderSummary = (items, otherIssue) => {
     if (!Array.isArray(items)) {
       return <span style={{ color: "red" }}>❌ डेटा उपलब्ध नहीं</span>;
     }
-
     const notOk = items
       .map((item, i) =>
         item?.status === "नहीं"
@@ -124,51 +120,45 @@ const handleSearch = () => {
   };
 
   const handleCustomerDecisionChange = (regNo, value) => {
-  setCustomerDecisions(prev => ({ ...prev, [regNo]: value }));
-  if (value === "Denied") {
-    setRepairStatuses(prev => ({ ...prev, [regNo]: "Denied" }));
-  } else if (value === "Pending") {
-    setRepairStatuses(prev => ({ ...prev, [regNo]: "Pending" }));
-  }
-};
+    setCustomerDecisions((prev) => ({ ...prev, [regNo]: value }));
+    if (value === "Denied") {
+      setRepairStatuses((prev) => ({ ...prev, [regNo]: "Denied" }));
+    } else if (value === "Pending") {
+      setRepairStatuses((prev) => ({ ...prev, [regNo]: "Pending" }));
+    }
+  };
 
-const handleRepairStatusChange = (regNo, value) => {
-  setRepairStatuses(prev => ({ ...prev, [regNo]: value }));
-};
-
+  const handleRepairStatusChange = (regNo, value) => {
+    setRepairStatuses((prev) => ({ ...prev, [regNo]: value }));
+  };
 
   const handleUpdateStatus = async (entry) => {
-  const customerDecision = customerDecisions[entry.registration] || "Pending";
-  const repairStatus = repairStatuses[entry.registration] || "Pending";
-
+    const customerDecision = customerDecisions[entry.registration] || "Pending";
+    const repairStatus = repairStatuses[entry.registration] || "Pending";
 
     try {
-    setLoading(true);
-    const res = await fetch(
-      `${FINAL_URL}?action=updateStatus&registration=${encodeURIComponent(
-        entry.registration
-      )}&customerDecision=${encodeURIComponent(
-        customerDecision
-      )}&repairStatus=${encodeURIComponent(repairStatus)}`
-    );
-    const data = await res.json();
-    if (data.success) {
-      alert("✅ Status updated successfully!");
-      fetchEntries(`${FINAL_URL}?type=today`);
-    } else {
-      alert("❌ Failed to update status.");
+      setLoading(true);
+      const res = await fetch(
+        `${FINAL_URL}?action=updateStatus&registration=${encodeURIComponent(
+          entry.registration
+        )}&customerDecision=${encodeURIComponent(
+          customerDecision
+        )}&repairStatus=${encodeURIComponent(repairStatus)}`
+      );
+      const data = await res.json();
+      if (data.success) {
+        alert("✅ Status updated successfully!");
+        fetchEntries(`${FINAL_URL}?type=today`);
+      } else {
+        alert("❌ Failed to update status.");
+      }
+    } catch (err) {
+      console.error("❌ Update error:", err);
+      alert("❌ Network error while updating.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("❌ Update error:", err);
-    alert("❌ Network error while updating.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
+  };
 
   return (
     <div className="entries-card-list">
@@ -204,18 +194,19 @@ const handleRepairStatusChange = (regNo, value) => {
             <div className="card-row"><strong>वाहन नंबर:</strong> {entry.registration}</div>
             <div className="card-row"><strong>KM:</strong> {entry.kilometers}</div>
             <div className="card-row"><strong>मॉडल:</strong> {entry.model}</div>
-           <div className="card-row"><strong>📅 तारीख:</strong> {formatDate(entry.dateTime)}</div>
-<div className="card-row"><strong>⏰ समय:</strong> {formatTime(entry.dateTime)}</div>
+            <div className="card-row"><strong>📅 तारीख:</strong> {formatDate(entry.dateTime)}</div>
+            <div className="card-row"><strong>⏰ समय:</strong> {formatTime(entry.dateTime)}</div>
 
-            <div className="card-row"><strong>स्थिति:</strong> {renderSummary(entry.items, entry.otherIssue)}</div>
+            <div className="card-row">
+              <strong>स्थिति:</strong> {renderSummary(entry.items, entry.otherIssue)}
+            </div>
 
             <div style={{ marginTop: "10px" }}>
               <label>Customer Decision: </label>
               <select
-  value={customerDecisions[entry.registration] || "Pending"}
-  onChange={(e) => handleCustomerDecisionChange(entry.registration, e.target.value)}
->
-
+                value={customerDecisions[entry.registration] || "Pending"}
+                onChange={(e) => handleCustomerDecisionChange(entry.registration, e.target.value)}
+              >
                 <option value="Pending">Pending</option>
                 <option value="Accepted">Accepted</option>
                 <option value="Denied">Denied</option>
@@ -225,9 +216,9 @@ const handleRepairStatusChange = (regNo, value) => {
             <div style={{ marginTop: "10px" }}>
               <label>Repair Status: </label>
               <select
-                value={repairStatuses[index] || "Pending"}
-                onChange={(e) => handleRepairStatusChange(index, e.target.value)}
-                disabled={customerDecisions[index] !== "Accepted"}
+                value={repairStatuses[entry.registration] || "Pending"}
+                onChange={(e) => handleRepairStatusChange(entry.registration, e.target.value)}
+                disabled={customerDecisions[entry.registration] !== "Accepted"}
               >
                 <option value="Pending">Pending</option>
                 <option value="In Progress">In Progress</option>
@@ -238,7 +229,7 @@ const handleRepairStatusChange = (regNo, value) => {
 
             <div style={{ marginTop: "10px" }}>
               <button
-                onClick={() => handleUpdateStatus(entry, index)}
+                onClick={() => handleUpdateStatus(entry)}
                 style={{
                   background: "green",
                   color: "white",

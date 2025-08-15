@@ -1,14 +1,14 @@
-import { GOOGLE_SCRIPT_URL } from "../config.js";
+import { TODAY_COUNT_URL } from '../config.js';
 
 export async function fetchTodayCount() {
   try {
-    const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=todayCount`);
+const response = await fetch(TODAY_COUNT_URL);
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! Status: ${res.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
-    const data = await res.json();
+    const data = await response.json();
 
     if (typeof data.todayCount === "number") {
       return data.todayCount;

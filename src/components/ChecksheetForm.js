@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchTodayCount } from '../utils/fetchTodayCount.js';
-import { GOOGLE_SCRIPT_URL } from '../config.js';
+import { SAVE_URL } from '../config.js';
 
 // Checklist labels
 const checklistLabels = [
@@ -31,15 +31,10 @@ const checklistLabels = [
 
 // Helper to format datetime to "dd/MM/yyyy HH:mm:ss"
 function formatDateTime(dateObj) {
-  const pad = (n) => n.toString().padStart(2, '0');
-  const day = pad(dateObj.getDate());
-  const month = pad(dateObj.getMonth() + 1);
-  const year = dateObj.getFullYear();
-  const hours = pad(dateObj.getHours());
-  const minutes = pad(dateObj.getMinutes());
-  const seconds = pad(dateObj.getSeconds());
-  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+  // Send in ISO format: yyyy-MM-ddTHH:mm:ss
+  return dateObj.toISOString().slice(0,19); // "2025-08-14T14:30:00"
 }
+
 
 const ChecksheetForm = () => {
   const [formData, setFormData] = useState({
@@ -92,7 +87,7 @@ const ChecksheetForm = () => {
     };
 
     try {
-      const response = await fetch(GOOGLE_SCRIPT_URL, {
+      const response = await fetch(SAVE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(finalFormData),
