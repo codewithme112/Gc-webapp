@@ -173,3 +173,108 @@ button:hover {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+/* Printable Entry Styles */
+
+.printable-entry {
+  font-family: Arial, sans-serif;
+  font-size: 12.5px;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 20px;
+  page-break-inside: avoid;
+}
+
+.print-title {
+  text-align: center;
+  font-size: 16px;
+  margin: 6px 0 12px 0;
+  color: #2c3e50;
+}
+
+.print-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.print-info-row p {
+  flex: 1 1 140px;
+  margin: 4px 0;
+}
+
+.print-mechanic {
+  margin: 8px 0 12px 0;
+  font-weight: 600;
+  font-size: 13px;
+  color: #495057;
+}
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.print-table th,
+.print-table td {
+  border: 1px solid #000;
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.print-table th {
+  background-color: #e9ecef;
+  font-weight: 700;
+}
+
+.status-ok td {
+  background-color: #d4edda; /* light green */
+}
+
+.status-not-ok td {
+  background-color: #f8d7da; /* light red */
+}
+
+.print-legend {
+  font-size: 11px;
+  color: #212529;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.print-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.inspector-name {
+  font-weight: bold;
+  font-size: 13px;
+  color: #212529;
+}
+
+.signature-container {
+  text-align: center;
+}
+
+.signature-img {
+  width: 120px;
+  object-fit: contain;
+  margin-top: 2px;
+}
+
+.signature-line {
+  border-top: 1px solid black;
+  width: 120px;
+  margin: 4px auto 2px auto;
+}
+
+.signature-label {
+  font-size: 11px;
+  color: #212529;
+}

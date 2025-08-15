@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { fetchTodayCount } from '../utils/fetchTodayCount';
+import { fetchTodayCount } from '../utils/fetchTodayCount.js';
+import { SAVE_URL } from '../config.js';
 
+// Checklist labels
 const checklistLabels = [
   "सर्विस हिस्ट्री देखें और ग्राहक को सुझाव दें",
   "गियर ऑयल स्तर जांचें",
@@ -27,25 +29,32 @@ const checklistLabels = [
   "लोड झेलने वाले जोइंट्स की ग्रेसिंग जांचें"
 ];
 
+// Helper to format datetime to "dd/MM/yyyy HH:mm:ss"
+function formatDateTime(dateObj) {
+  // Send in ISO format: yyyy-MM-ddTHH:mm:ss
+  return dateObj.toISOString().slice(0,19); // "2025-08-14T14:30:00"
+}
+
+
 const ChecksheetForm = () => {
   const [formData, setFormData] = useState({
+    datetime: '',
     registration: '',
     kilometers: '',
     model: '',
-    date: '',
-    time: '',
     otherIssue: '',
     items: checklistLabels.map(() => ({ status: 'हाँ', remark: 'ठीक है' }))
   });
 
   const [todayCount, setTodayCount] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
 
+  // On mount: set current datetime and fetch today's count
   useEffect(() => {
     const now = new Date();
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      date: now.toLocaleDateString('hi-IN'),
-      time: now.toLocaleTimeString('hi-IN'),
+      datetime: formatDateTime(now)
     }));
 
     fetchTodayCount().then(setTodayCount);
@@ -64,36 +73,47 @@ const ChecksheetForm = () => {
     setFormData({ ...formData, items: updatedItems });
   };
 
-  const [submitting, setSubmitting] = useState(false);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (submitting) return; // Prevent double submit
+    if (submitting) return;
     setSubmitting(true);
+
+    // Ensure Other Issue defaults to "ठीक है"
+    const finalFormData = {
+      ...formData,
+      otherIssue: formData.otherIssue && formData.otherIssue.trim() !== '' 
+        ? formData.otherIssue 
+        : 'ठीक है'
+    };
+
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbybZns1p4daGCK4yh1DiQa60lj_6e7GBL3DWzFktqb7g7mcdevYZjJvA2W9UbDq7IhU6A/exec', {
+      const response = await fetch(SAVE_URL, {
         method: 'POST',
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalFormData),
       });
 
       if (response.ok) {
         alert('✅ सेव हो गया!');
         setFormData({
+          datetime: formatDateTime(new Date()),
           registration: '',
           kilometers: '',
           model: '',
-          date: formData.date,
-          time: formData.time,
           otherIssue: '',
           items: checklistLabels.map(() => ({ status: 'हाँ', remark: 'ठीक है' }))
         });
-        setTodayCount(todayCount + 1);
+
+        const newCount = await fetchTodayCount();
+        setTodayCount(newCount);
       } else {
         alert('❌ कुछ गलत हो गया!');
       }
     } catch (err) {
       console.error(err);
       alert('❌ नेटवर्क समस्या! कृपया दोबारा प्रयास करें।');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -137,7 +157,7 @@ const ChecksheetForm = () => {
         />
 
         <p style={{ fontWeight: 'bold', border: '1px solid white' }}>
-          📅 तारीख: {formData.date} | ⏰ समय: {formData.time}
+          📅 दिनांक और समय: {formData.datetime}
         </p>
 
         {checklistLabels.map((label, index) => (
@@ -186,10 +206,9 @@ const ChecksheetForm = () => {
         <p>🔖 एडवाइजर: <strong>Ranveer Singh Rathore</strong></p>
 
         <button type="submit" disabled={submitting}>✅ सबमिट करें</button>
-    
-  </form>
-</div>
-);
+      </form>
+    </div>
+  );
 };
 
 export default ChecksheetForm;

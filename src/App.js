@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import ChecksheetForm from './components/ChecksheetForm';
-import ViewEntries from './components/ViewEntries';
+import ChecksheetForm from './components/ChecksheetForm.js';
+import ViewEntries from './components/ViewEntries.js';
 
 const App = () => {
   return (
